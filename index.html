@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Crash Course — Sonance Tech &amp; Innovation</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #06060f;
+  --surface: rgba(255,255,255,0.04);
+  --surface-2: rgba(255,255,255,0.07);
+  --border: rgba(255,255,255,0.08);
+  --accent: #00A3E1;
+  --accent-soft: rgba(0,163,225,0.15);
+  --text: #e8e8f0;
+  --muted: rgba(255,255,255,0.55);
+  --dim: rgba(255,255,255,0.35);
+}
+html { overflow: hidden; height: 100%; }
+body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); overflow: hidden; height: 100%; }
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  padding: 48px 56px; overflow-y: auto;
+  opacity: 0; transform: translateX(60px); pointer-events: none;
+  transition: opacity 0.6s cubic-bezier(0.16,1,0.3,1), transform 0.6s cubic-bezier(0.16,1,0.3,1);
+}
+.slide.active { opacity: 1; transform: translateX(0); pointer-events: auto; z-index: 10; }
+.slide.exit-left { opacity: 0; transform: translateX(-60px); z-index: 5; }
+.slide.exit-right { opacity: 0; transform: translateX(60px); z-index: 5; }
+.slide-inner {
+  max-width: 1100px; width: 100%;
+  opacity: 0; transform: translateY(20px);
+  transition: all 0.5s cubic-bezier(0.16,1,0.3,1) 0.15s;
+}
+.slide.active .slide-inner { opacity: 1; transform: translateY(0); }
+
+h1 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(2.4rem, 5.5vw, 4.2rem); font-weight: 700; letter-spacing: -2px; line-height: 1.1; margin-bottom: 20px; }
+h2 { font-family: 'Space Grotesk', sans-serif; font-size: clamp(1.8rem, 3.6vw, 2.6rem); font-weight: 600; letter-spacing: -1px; line-height: 1.2; margin-bottom: 18px; }
+h3 { font-family: 'Space Grotesk', sans-serif; font-size: 1.25rem; font-weight: 500; letter-spacing: -0.4px; margin-bottom: 10px; color: var(--text); }
+p { line-height: 1.65; color: var(--muted); font-size: 1.02rem; }
+.subtitle { font-size: clamp(1rem, 1.6vw, 1.25rem); color: var(--muted); font-weight: 300; line-height: 1.6; max-width: 760px; margin-bottom: 24px; }
+
+.tag { display: inline-block; padding: 6px 16px; border-radius: 100px; font-size: 0.72rem; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 22px; background: var(--accent-soft); color: var(--accent); border: 1px solid rgba(0,163,225,0.3); }
+
+.card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-top: 26px; }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 24px 22px; transition: all 0.3s ease; position: relative; }
+.card:hover { border-color: rgba(0,163,225,0.4); transform: translateY(-3px); box-shadow: 0 16px 50px rgba(0,0,0,0.3); }
+.card-icon { font-size: 1.8rem; margin-bottom: 12px; }
+.card p { color: var(--muted); font-size: 0.92rem; }
+.card .num { position: absolute; top: 14px; right: 18px; font-family: 'Space Grotesk', sans-serif; font-size: 2.6rem; font-weight: 800; opacity: 0.08; line-height: 1; }
+
+.module-card { background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 28px 26px; cursor: pointer; transition: all 0.3s ease; text-align: left; }
+.module-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: 0 18px 60px rgba(0,163,225,0.08); }
+.module-card .mod-num { font-family: 'Space Grotesk', sans-serif; font-size: 0.85rem; color: var(--accent); font-weight: 600; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px; }
+
+.checklist { list-style: none; padding: 0; margin-top: 18px; }
+.checklist li { padding: 12px 0 12px 36px; position: relative; color: var(--text); font-size: 1rem; line-height: 1.5; border-bottom: 1px solid var(--border); }
+.checklist li:last-child { border-bottom: none; }
+.checklist li::before {
+  content: '✓'; position: absolute; left: 0; top: 50%; transform: translateY(-50%);
+  width: 24px; height: 24px; border-radius: 50%;
+  background: var(--accent-soft); color: var(--accent);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 700; font-size: 0.85rem;
+}
+.checklist .sub { color: var(--muted); font-size: 0.88rem; display: block; margin-top: 4px; }
+
+.prompt-box { background: rgba(0,163,225,0.06); border: 1px solid rgba(0,163,225,0.2); border-left: 3px solid var(--accent); border-radius: 10px; padding: 18px 20px; margin: 16px 0; font-family: 'Inter', sans-serif; }
+.prompt-box .label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); font-weight: 600; margin-bottom: 8px; }
+.prompt-box .content { color: var(--text); font-size: 0.95rem; line-height: 1.6; }
+
+.bad-good { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 18px; }
+.bad-good .col { background: var(--surface); border-radius: 14px; padding: 18px 20px; border: 1px solid var(--border); }
+.bad-good .col.bad { border-left: 3px solid #ff6b6b; }
+.bad-good .col.good { border-left: 3px solid #4ade80; }
+.bad-good .col h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; }
+.bad-good .col.bad h4 { color: #ff6b6b; }
+.bad-good .col.good h4 { color: #4ade80; }
+.bad-good .col p { font-size: 0.92rem; color: var(--muted); }
+
+.project-box { background: linear-gradient(135deg, rgba(0,163,225,0.08), rgba(0,163,225,0.02)); border: 1px solid rgba(0,163,225,0.25); border-radius: 16px; padding: 24px 26px; margin-top: 24px; }
+.project-box .label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); font-weight: 700; margin-bottom: 8px; }
+.project-box h3 { color: var(--text); margin-bottom: 10px; }
+
+.flow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: center; margin: 30px 0; }
+.flow-node { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px 22px; text-align: center; min-width: 140px; }
+.flow-arrow { color: var(--accent); font-size: 1.4rem; }
+
+.nav { position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%); z-index: 100; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 90vw; }
+.nav-dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,0.15); cursor: pointer; transition: all 0.3s; }
+.nav-dot.active { background: var(--accent); box-shadow: 0 0 12px var(--accent); width: 26px; border-radius: 5px; }
+.nav-dot:hover { background: rgba(255,255,255,0.4); }
+
+.controls { position: fixed; bottom: 28px; right: 32px; display: flex; gap: 8px; z-index: 100; }
+.ctrl { background: var(--surface-2); border: 1px solid var(--border); color: var(--text); width: 44px; height: 44px; border-radius: 12px; cursor: pointer; font-size: 1.2rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
+.ctrl:hover { background: var(--accent); border-color: var(--accent); }
+
+.progress-bar { position: fixed; top: 0; left: 0; height: 3px; background: linear-gradient(90deg, var(--accent), #4ade80); z-index: 200; transition: width 0.3s; }
+.slide-counter { position: fixed; top: 18px; right: 24px; font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; color: var(--dim); letter-spacing: 1.5px; }
+
+.ambient { position: absolute; border-radius: 50%; filter: blur(120px); opacity: 0.18; pointer-events: none; }
+.ambient.a1 { width: 500px; height: 500px; background: var(--accent); top: -100px; right: -100px; }
+.ambient.a2 { width: 400px; height: 400px; background: #4ade80; bottom: -150px; left: -100px; opacity: 0.08; }
+
+.stat-row { display: flex; gap: 40px; justify-content: center; flex-wrap: wrap; margin-top: 28px; }
+.stat { text-align: center; }
+.stat-num { font-family: 'Space Grotesk', sans-serif; font-size: 2.8rem; font-weight: 700; background: linear-gradient(135deg, var(--accent), #4ade80); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; }
+.stat-label { font-size: 0.8rem; color: var(--muted); margin-top: 6px; text-transform: uppercase; letter-spacing: 1px; }
+
+.kbd { display: inline-block; padding: 3px 8px; background: var(--surface-2); border: 1px solid var(--border); border-radius: 5px; font-family: 'Space Grotesk', sans-serif; font-size: 0.8rem; color: var(--text); }
+.hint { position: fixed; top: 18px; left: 24px; font-size: 0.75rem; color: var(--dim); }
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+@media (max-width: 720px) {
+  .slide { padding: 32px 24px; }
+  .bad-good { grid-template-columns: 1fr; }
+  .stat-row { gap: 24px; }
+}
+</style>
+</head>
+<body>
+<div class="progress-bar" id="progressBar"></div>
+<div class="slide-counter" id="counter">1 / 22</div>
+<div class="hint">Use <span class="kbd">→</span> <span class="kbd">←</span> to navigate</div>
+
+<div class="slide-container">
+
+<!-- 1. COVER -->
+<div class="slide active">
+  <div class="ambient a1"></div>
+  <div class="ambient a2"></div>
+  <div class="slide-inner" style="text-align:center;">
+    <div class="tag">AI Crash Course · Sonance Tech &amp; Innovation</div>
+    <h1>From Curious<br>to Capable in 4 Modules</h1>
+    <p class="subtitle" style="margin: 24px auto 0;">A self-guided primer on how we actually use AI at Sonance — and how you can too. Built for you to work through over the next few days.</p>
+    <div class="stat-row">
+      <div class="stat"><div class="stat-num">4</div><div class="stat-label">Modules</div></div>
+      <div class="stat"><div class="stat-num">2</div><div class="stat-label">Hands-on Projects</div></div>
+      <div class="stat"><div class="stat-num">~6h</div><div class="stat-label">Total Time</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. WHO WE ARE -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="tag">Context · Who We Are</div>
+    <h2>Sonance Tech &amp; Innovation</h2>
+    <p class="subtitle">We're the small team inside Sonance that builds the tools, data plumbing, and AI capabilities the rest of the company runs on.</p>
+    <div class="card-grid">
+      <div class="card"><span class="num">01</span><div class="card-icon">🛠️</div><h3>Hardware &amp; Security</h3><p>The physical layer: devices, networks, the office stack, and keeping it all safe.</p></div>
+      <div class="card"><span class="num">02</span><div class="card-icon">🗄️</div><h3>Data &amp; Systems</h3><p>One home for all our data — clean, connected, and ready for AI to use.</p></div>
+      <div class="card"><span class="num">03</span><div class="card-icon">🤖</div><h3>AI &amp; Software</h3><p>The apps, agents, and platforms we build on top of the data.</p></div>
+      <div class="card"><span class="num">04</span><div class="card-icon">📚</div><h3>Research &amp; Education</h3><p>Staying ahead of the curve — and teaching the rest of the company.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- 3. THE VISION -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="tag">The Vision</div>
+    <h2>The Road to AIO</h2>
+    <p class="subtitle">Our long-term goal is what we call an <strong>AI Operating System</strong> — one platform where data, apps, and AI workers all live together and talk to each other.</p>
+    <div class="flow">
+      <div class="flow-node"><strong>Clean &amp; Organize</strong><br><span style="color:var(--muted);font-size:0.85rem;">All data in one home</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><strong>Ready for AI</strong><br><span style="color:var(--muted);font-size:0.85rem;">Connected &amp; query-able</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><strong>AI-Native Apps</strong><br><span style="color:var(--muted);font-size:0.85rem;">Built on shared blocks</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" style="border-color:var(--accent);"><strong>AIO</strong><br><span style="color:var(--accent);font-size:0.85rem;">Everything connects</span></div>
+    </div>
+    <p style="text-align:center;margin-top:18px;font-style:italic;color:var(--muted);">Instead of five tools that don't talk to each other, you ask one question and get one answer.</p>
+  </div>
+</div>
+
+<!-- 4. WHY THIS MATTERS -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="tag">Why This Matters</div>
+    <h2>AI Is the New Literacy</h2>
+    <p class="subtitle">The companies — and people — who learn to work <em>with</em> AI early will pull ahead. We're building this so Sonance is one of them.</p>
+    <div class="card-grid">
+      <div class="card"><div class="card-icon">⚡</div><h3>Faster work</h3><p>Tasks that took hours now take minutes. Reports, research, code, drafts.</p></div>
+      <div class="card"><div class="card-icon">🧠</div><h3>Better thinking</h3><p>AI is a thought partner. You bring the judgment; it brings the breadth.</p></div>
+      <div class="card"><div class="card-icon">🚀</div><h3>New possible</h3><p>Things that weren't worth doing become easy. Small ideas can ship.</p></div>
+    </div>
+    <p style="margin-top:28px;text-align:center;color:var(--muted);font-size:0.95rem;">Your job over the next few days: get comfortable, build two real things, and walk away knowing how to use this for school, projects, and life.</p>
+  </div>
+</div>
+
+<!-- 5. HOW TO USE THIS -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="tag">How To Use This</div>
+    <h2>The Plan</h2>
+    <ul class="checklist">
+      <li><strong>Day 1 — Module 1: Prompting &amp; Chat Best Practices</strong><span class="sub">Learn how to actually talk to AI so it gives you good answers.</span></li>
+      <li><strong>Day 2 — Module 2: Co-Work with AI</strong><span class="sub">Use AI as a real teammate for research, writing, and thinking.</span></li>
+      <li><strong>Day 3 — Module 3: Vibe Coding &amp; Low-Code</strong><span class="sub">Build a working app without being a "real" programmer.</span></li>
+      <li><strong>Day 4 — Module 4: Agents</strong><span class="sub">AI that doesn't just answer — it goes off and does things.</span></li>
+      <li><strong>Day 5 — Final Project + Showcase</strong><span class="sub">Build something you'd actually use. Present it back.</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- 6. MODULES OVERVIEW -->
+<div class="slide">
+  <div class="slide-inner">
+    <h2 style="text-align:center;">Four Modules</h2>
+    <p class="subtitle" style="text-align:center;margin:0 auto 28px;">Each one builds on the last. Don't skip ahead.</p>
+    <div class="card-grid">
+      <div class="module-card"><div class="mod-num">Module 01</div><h3>Prompting &amp; Chat</h3><p>The foundation. Bad prompts → bad answers. Good prompts → magic.</p></div>
+      <div class="module-card"><div class="mod-num">Module 02</div><h3>Co-Work with AI</h3><p>Stop using AI like Google. Start using it like a collaborator.</p></div>
+      <div class="module-card"><div class="mod-num">Module 03</div><h3>Vibe Coding &amp; Low-Code</h3><p>Build software by describing what you want. Yes, really.</p></div>
+      <div class="module-card"><div class="mod-num">Module 04</div><h3>Agents</h3><p>AI that takes actions on its own. The next big shift.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- =================== MODULE 1 =================== -->
+<div class="slide">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="tag">Module 01</div>
+    <h1>Prompting &amp;<br>Chat Best Practices</h1>
+    <p class="subtitle" style="margin: 20px auto 0;">The single most important skill in the AI era. Everything else builds on this.</p>
+  </div>
+</div>
+
+<!-- 8. CORE IDEA -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="tag">Core Idea</div>
+    <h2>Prompting Is Just Clear Communication</h2>
+    <p class="subtitle">AI can't read your mind. The clearer you are about what you want, who you are, and what "good" looks like, the better the result.</p>
+    <div class="bad-good">
+      <div class="col bad">
+        <h4>❌ Vague</h4>
+        <p>"Write an essay about AI."</p>
+      </div>
+      <div class="col good">
+        <h4>✓ Clear</h4>
+        <p>"Write a 500-word essay for a high school class on how AI is changing how small companies work. Use 2-3 real examples. Conversational tone, no jargon."</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 9. THE 4 INGREDIENTS -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="tag">The Recipe</div>
+    <h2>4 Ingredients of a Great Prompt</h2>
+    <div class="card-grid">
+      <div class="card"><span class="num">01</span><h3>Role</h3><p>Who should the AI be? "Act as a science teacher" / "Be a skeptical editor."</p></div>
+      <div class="card"><span class="num">02</span><h3>Task</h3><p>What do you actually want? Be specific. One job per prompt is best.</p></div>
+      <div class="card"><span class="num">03</span><h3>Context</h3><p>Background it needs. Who's the audience? What's the situation?</p></div>
+      <div class="card"><span class="num">04</span><h3>Format</h3><p>What should the output look like? Bullet list? Essay? Table? Length?</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- 10. PRO MOVES -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="tag">Pro Moves</div>
+    <h2>Things That Level You Up Fast</h2>
+    <ul class="checklist">
+      <li><strong>Iterate, don't restart.</strong><span class="sub">If the first answer's not great, say what's off. "Make it shorter." "Less formal." "Add an example."</span></li>
+      <li><strong>Show, don't just tell.</strong><span class="sub">Paste an example of the style or format you want. AI matches patterns.</span></li>
+      <li><strong>Ask AI to think out loud.</strong><span class="sub">"Walk me through your reasoning step by step." Catches mistakes.</span></li>
+      <li><strong>Ask for options, not just one answer.</strong><span class="sub">"Give me 3 different angles I could take." Then pick.</span></li>
+      <li><strong>Always fact-check important stuff.</strong><span class="sub">AI is confident even when it's wrong. Trust but verify.</span></li>
+    </ul>
+  </div>
+</div>
+
+<!-- 11. MODULE 1 EXERCISE -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="project-box">
+      <div class="label">Module 1 · Hands-On</div>
+      <h3>Try It Yourself (30–45 min)</h3>
+      <p style="margin-bottom:16px;">Open ChatGPT, Claude, or whatever tool Derick gives you access to. Try all five:</p>
+      <ol style="color:var(--muted);line-height:2;padding-left:20px;">
+        <li>Get AI to explain quantum computing like you're 10. Then like you're an expert.</li>
+        <li>Give it a paragraph you wrote and ask for 3 different rewrites — formal, funny, super short.</li>
+        <li>Ask it to help you plan a 3-day trip somewhere you've never been.</li>
+        <li>Have it interview <em>you</em> about a topic until it can write a good essay about you.</li>
+        <li>Find one thing it gets wrong. Push back. Watch it correct itself (or double down — both are useful!).</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<!-- =================== MODULE 2 =================== -->
+<div class="slide">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="tag">Module 02</div>
+    <h1>Co-Work<br>with AI</h1>
+    <p class="subtitle" style="margin: 20px auto 0;">Stop using AI like a search engine. Start using it like a teammate.</p>
+  </div>
+</div>
+
+<!-- 13. WHAT IS CO-WORK -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="tag">The Shift</div>
+    <h2>From Question-and-Answer to Collaboration</h2>
+    <p class="subtitle">Most people use AI for one-shot questions. The real power is in long conversations where AI becomes part of your workflow.</p>
+    <div class="card-grid">
+      <div class="card"><div class="card-icon">📝</div><h3>Thought Partner</h3><p>"Help me think through this." Brainstorm, pressure-test ideas, find blind spots.</p></div>
+      <div class="card"><div class="card-icon">🔍</div><h3>Research Assistant</h3><p>"What are the leading approaches to X? Pros and cons?" Summarize, compare, dig in.</p></div>
+      <div class="card"><div class="card-icon">✍️</div><h3>Writing Partner</h3><p>Outline → draft → edit → polish, all in one conversation. Better than blank page.</p></div>
+      <div class="card"><div class="card-icon">🎯</div><h3>Coach</h3><p>"Quiz me on this." "Review my work like a tough teacher." Levels you up.</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- 14. CONTEXT IS KING -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="tag">The Secret</div>
+    <h2>Give It Context. Always.</h2>
+    <p class="subtitle">The difference between a generic answer and a brilliant one is usually how much context you fed in.</p>
+    <div class="prompt-box">
+      <div class="label">Generic prompt</div>
+      <div class="content">"Help me write a college essay."</div>
+    </div>
+    <div class="prompt-box">
+      <div class="label">Context-rich prompt</div>
+      <div class="content">"I'm a high school senior applying to engineering programs. I love robotics and built a working drone last summer. The prompt is: 'Describe a moment that shaped you.' Help me brainstorm 3 angles I could take — what's a story that shows curiosity and grit without being cheesy?"</div>
+    </div>
+    <p style="margin-top:18px;color:var(--muted);font-size:0.95rem;">The second prompt gets you a real answer. The first gets you Wikipedia.</p>
+  </div>
+</div>
+
+<!-- 15. MODULE 2 EXERCISE -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="project-box">
+      <div class="label">Module 2 · Hands-On</div>
+      <h3>Co-Work Through a Real Task (60 min)</h3>
+      <p style="margin-bottom:16px;">Pick a real thing from your life — a paper that's due, a presentation, a decision you're trying to make. Don't ask AI to do it. <em>Work through it together.</em></p>
+      <ol style="color:var(--muted);line-height:2;padding-left:20px;">
+        <li>Start by explaining the situation in detail — like briefing a coworker on day one.</li>
+        <li>Ask it to ask <em>you</em> clarifying questions before giving any advice.</li>
+        <li>Brainstorm options. Get it to argue both sides.</li>
+        <li>Make your decision, then have it help you execute the first step.</li>
+        <li>Save the chat. You'll be surprised how useful it is to look back at it.</li>
+      </ol>
+    </div>
+  </div>
+</div>
+
+<!-- =================== MODULE 3 =================== -->
+<div class="slide">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="tag">Module 03</div>
+    <h1>Vibe Coding<br>&amp; Low-Code</h1>
+    <p class="subtitle" style="margin: 20px auto 0;">Build software by <em>describing</em> what you want. This is one of the biggest shifts of the AI era.</p>
+  </div>
+</div>
+
+<!-- 17. WHAT IS IT -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="tag">The New Way</div>
+    <h2>You Don't Need to Code to Build Software</h2>
+    <p class="subtitle">"Vibe coding" — coined in 2026 — means describing what you want in plain English and letting AI write the actual code. Low-code/no-code tools take it even further: drag, drop, done.</p>
+    <div class="bad-good">
+      <div class="col bad">
+        <h4>The Old Way</h4>
+        <p>Learn a language for 6 months → finally build a simple app → spend hours fixing bugs.</p>
+      </div>
+      <div class="col good">
+        <h4>The Vibe Way</h4>
+        <p>"Make me a webpage that tracks how much water I drink each day with a streak counter." → working app in 20 minutes.</p>
+      </div>
+    </div>
+    <p style="margin-top:20px;color:var(--muted);font-size:0.95rem;">This whole curriculum you're looking at? Vibe-coded. The Tech Vision deck Derick uses? Same.</p>
+  </div>
+</div>
+
+<!-- 18. TOOLS -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="tag">The Toolkit</div>
+    <h2>Tools You Should Try</h2>
+    <div class="card-grid">
+      <div class="card"><div class="card-icon">💬</div><h3>Claude / ChatGPT (Artifacts &amp; Canvas)</h3><p>Best starting point. Ask for an HTML page, get a working preview right in chat.</p></div>
+      <div class="card"><div class="card-icon">⚡</div><h3>v0.dev</h3><p>Describe a UI, get a polished React component. Vercel's tool. Free tier exists.</p></div>
+      <div class="card"><div class="card-icon">🛠️</div><h3>Replit / Lovable / Bolt</h3><p>Whole app-builders. Type a prompt, get a deployed website.</p></div>
+      <div class="card"><div class="card-icon">📊</div><h3>Airtable / Glide / Softr</h3><p>Low-code databases &amp; apps. Spreadsheet → real app, no code.</p></div>
+    </div>
+    <p style="margin-top:22px;color:var(--muted);font-size:0.95rem;text-align:center;">Start with one. Get a small win. Then expand.</p>
+  </div>
+</div>
+
+<!-- 19. MODULE 3 PROJECT -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="project-box">
+      <div class="label">Module 3 · Project (2–3 hours)</div>
+      <h3>🚀 Build &amp; Ship Something Real</h3>
+      <p style="margin-bottom:14px;">Pick one and actually ship it. Send Derick the link.</p>
+      <ol style="color:var(--muted);line-height:2;padding-left:20px;">
+        <li><strong>Personal Dashboard</strong> — a webpage that shows your school schedule, weather, a daily quote, and a to-do list.</li>
+        <li><strong>Hobby Tracker</strong> — log workouts, books read, songs learned. Show streaks and stats.</li>
+        <li><strong>Mini Study Tool</strong> — flashcards or quizzes for a class you're taking, generated from your notes.</li>
+        <li><strong>Your Own Pick</strong> — anything you'd actually use. Bonus points for that.</li>
+      </ol>
+      <p style="margin-top:14px;color:var(--accent);font-size:0.92rem;">Rule: you have to describe what you want — not write any code yourself.</p>
+    </div>
+  </div>
+</div>
+
+<!-- =================== MODULE 4 =================== -->
+<div class="slide">
+  <div class="slide-inner" style="text-align:center;">
+    <div class="tag">Module 04</div>
+    <h1>Agents</h1>
+    <p class="subtitle" style="margin: 20px auto 0;">AI that doesn't just <em>answer</em> — it goes off and <em>does</em> things. This is the next big shift.</p>
+  </div>
+</div>
+
+<!-- 21. WHAT IS AN AGENT -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="tag">The Concept</div>
+    <h2>From Chatbot to Coworker</h2>
+    <p class="subtitle">A chatbot waits for you to ask. An agent takes a goal and goes after it — using tools, browsing the web, sending emails, running code, all on its own.</p>
+    <div class="flow">
+      <div class="flow-node"><strong>Goal</strong><br><span style="color:var(--muted);font-size:0.85rem;">"Plan my trip"</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><strong>Plan</strong><br><span style="color:var(--muted);font-size:0.85rem;">Break it into steps</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node"><strong>Use Tools</strong><br><span style="color:var(--muted);font-size:0.85rem;">Search, book, email</span></div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-node" style="border-color:var(--accent);"><strong>Deliver</strong><br><span style="color:var(--accent);font-size:0.85rem;">Done. Here's the receipt.</span></div>
+    </div>
+    <p style="text-align:center;margin-top:14px;font-style:italic;color:var(--muted);">At Sonance, we're building agents that run our internal systems — drafting emails, finding info, even building other software.</p>
+  </div>
+</div>
+
+<!-- 22. MODULE 4 + WRAP -->
+<div class="slide">
+  <div class="slide-inner">
+    <div class="project-box">
+      <div class="label">Module 4 · Explore</div>
+      <h3>🤖 Meet a Real Agent (45 min)</h3>
+      <p style="margin-bottom:14px;">Try one of these and write a short reflection — what surprised you, what was clunky, what you'd build if you could:</p>
+      <ol style="color:var(--muted);line-height:2;padding-left:20px;">
+        <li><strong>ChatGPT Agent / Claude with tools</strong> — give it a multi-step task and watch it work.</li>
+        <li><strong>Operator / Manus</strong> — agents that drive a web browser for you.</li>
+        <li><strong>Build a tiny one</strong> — use n8n, Zapier, or Make with an AI step. e.g. "When I get an email about X, summarize it and text me."</li>
+      </ol>
+    </div>
+    <div style="margin-top:28px;text-align:center;">
+      <h3 style="font-size:1.4rem;color:var(--accent);">🎓 Final Showcase</h3>
+      <p style="margin-top:8px;color:var(--muted);max-width:700px;margin-left:auto;margin-right:auto;">Pick your favorite project from Module 3, polish it, and present it back to Derick. 5 minutes. What you built, what you learned, what you'd build next.</p>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div class="nav" id="nav"></div>
+<div class="controls">
+  <button class="ctrl" onclick="prev()" aria-label="Previous">‹</button>
+  <button class="ctrl" onclick="next()" aria-label="Next">›</button>
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const nav = document.getElementById('nav');
+const counter = document.getElementById('counter');
+const progressBar = document.getElementById('progressBar');
+let current = 0;
+
+slides.forEach((_, i) => {
+  const dot = document.createElement('div');
+  dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+  dot.onclick = () => go(i);
+  nav.appendChild(dot);
+});
+
+function go(idx) {
+  if (idx < 0 || idx >= slides.length || idx === current) return;
+  const dir = idx > current ? 'left' : 'right';
+  slides[current].classList.remove('active');
+  slides[current].classList.add('exit-' + dir);
+  setTimeout(() => slides[current].classList.remove('exit-left', 'exit-right'), 700);
+  slides[idx].classList.add('active');
+  document.querySelectorAll('.nav-dot').forEach((d, i) => d.classList.toggle('active', i === idx));
+  current = idx;
+  counter.textContent = (idx + 1) + ' / ' + slides.length;
+  progressBar.style.width = ((idx + 1) / slides.length * 100) + '%';
+}
+function next() { go(current + 1); }
+function prev() { go(current - 1); }
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); next(); }
+  if (e.key === 'ArrowLeft') prev();
+  if (e.key === 'Home') go(0);
+  if (e.key === 'End') go(slides.length - 1);
+});
+
+// touch
+let touchX = 0;
+document.addEventListener('touchstart', e => touchX = e.touches[0].clientX);
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].clientX - touchX;
+  if (Math.abs(dx) > 50) dx < 0 ? next() : prev();
+});
+
+progressBar.style.width = (1 / slides.length * 100) + '%';
+counter.textContent = '1 / ' + slides.length;
+</script>
+</body>
+</html>
